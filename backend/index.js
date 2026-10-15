@@ -22,16 +22,23 @@ const app = express();
 
 // Middleware
 const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:5173",
+  process.env.CLIENT_URL,
   "http://localhost:5173",
   "http://127.0.0.1:5173"
-];
+].filter(Boolean);
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1) {
+      const isAllowed =
+        allowedOrigins.some((allowed) => origin.startsWith(allowed)) ||
+        origin.endsWith(".vercel.app") ||
+        origin.includes("localhost") ||
+        origin.includes("127.0.0.1");
+
+      if (isAllowed) {
         return callback(null, true);
       }
       return callback(null, true);
